@@ -4,16 +4,10 @@ const CleanWebpackPlugin = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 
-const outputDirectory = 'dist';
+// Use environment variable for output directory, defaulting to 'dist'
+const outputDirectory = process.env.WEBPACK_OUTPUT_DIR || 'dist';
 
 module.exports = {
-  entry: ['babel-polyfill', './src/client/index.tsx'],
-  output: {
-    path: path.join(__dirname, outputDirectory),
-    filename: './js/[name].bundle.js'
-  },
-  devtool: 'source-map',
-  module: {
     rules: [
       {
         test: /\.(js|jsx)$/,
@@ -67,12 +61,12 @@ module.exports = {
     extensions: ['*', '.ts', '.tsx', '.js', '.jsx', '.json', '.less']
   },
   devServer: {
-    port: 3000,
+    port: process.env.PORT || 3000,
     open: true,
     hot: true,
     proxy: {
       '/api/**': {
-        target: 'http://localhost:8050',
+        target: process.env.API_TARGET || 'http://localhost:8050',
         secure: false,
         changeOrigin: true
       }
@@ -81,8 +75,8 @@ module.exports = {
   plugins: [
     new CleanWebpackPlugin([outputDirectory]),
     new HtmlWebpackPlugin({
-      template: './public/index.html',
-      favicon: './public/favicon.ico',
+      template: process.env.HTML_TEMPLATE_PATH || './public/index.html',
+      favicon: process.env.HTML_FAVICON_PATH || './public/favicon.ico',
       title: 'express-typescript-react',
     }),
     new MiniCssExtractPlugin({
@@ -90,7 +84,7 @@ module.exports = {
       chunkFilename: './css/[id].css',
     }),
     new CopyPlugin([
-      { from: './src/client/Assets', to: 'assets' },
+      { from: process.env.ASSETS_SRC_PATH || './src/client/Assets', to: 'assets' },
     ])
   ],
 };
