@@ -4,7 +4,7 @@ export default async function Post(
     headers:Record<string, unknown> = {}
     ): Promise<any>{
     try {
-        const response: Response = await fetch(url, {
+        const response: any = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

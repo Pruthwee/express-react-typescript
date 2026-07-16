@@ -4,7 +4,7 @@ export default async function Delete(
     headers:Record<string, unknown> = {}
 ): Promise<any>{
     try {
-        const response: Response = await fetch(url, {
+        const response: any = await fetch(url, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

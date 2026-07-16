@@ -1,12 +1,6 @@
 {
   "ignore": [
-    "**/*.test.ts",
-    "**/*.spec.ts",
-    "node_modules",
-    "src/client"
-  ],
-  "watch": [
-    "src/server"
+    "node_modules/**",
   ],
   "exec": "tsc -p tsconfig.server.json && node server/",
   "ext": "ts"

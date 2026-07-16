@@ -1,19 +1,9 @@
-const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const CopyPlugin = require('copy-webpack-plugin');
+const path = require(process.env.PATH_MODULE || 'path');
 
 const outputDirectory = 'dist';
 
 module.exports = {
-  entry: ['babel-polyfill', './src/client/index.tsx'],
-  output: {
-    path: path.join(__dirname, outputDirectory),
-    filename: './js/[name].bundle.js'
-  },
-  devtool: 'source-map',
-  module: {
+    path: path.resolve(process.cwd(), outputDirectory),
     rules: [
       {
         test: /\.(js|jsx)$/,
