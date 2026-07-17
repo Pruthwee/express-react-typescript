@@ -12,11 +12,5 @@ class Api implements IApi {
     getRoute(routeName: string) {
         return `${this.host}/api/${routeName}`
     }
-
-}
-
-const apiRoute: Api = Object.freeze(new Api("http://localhost:3000"));
-
-export {
-    apiRoute,
+const apiRoute: Api = Object.freeze(new Api(process.env.REACT_APP_API_URL || "http://localhost:3000"));
 }

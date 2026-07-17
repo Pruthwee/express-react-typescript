@@ -3,13 +3,44 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self';">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Express, React, Typescript, Less </title>
+    <style>
+        .ssr-skeleton {
+            background-color: #eee;
+            background-image: linear-gradient(to right, #eee 8%, #ddd 18%, #eee 33%);
+            background-repeat: no-repeat;
+            background-size: 100% 100%;
+            display: inline-block;
+            position: relative;
+            animation: skeleton-loading 1.5s infinite linear;
+        }
+        @keyframes skeleton-loading {
+            0% { background-position: -100% 0; }
+            100% { background-position: 100% 0; }
+        }
+        .skeleton-container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .skeleton-item {
+            height: 20px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+    </style>
 </head>
-
 <body>
-    <div id="root"></div>
+    <div id="root">
+        <div class="skeleton-container">
+            <div class="ssr-skeleton skeleton-item" style="width: 60%; height: 32px;"></div>
+            <div class="ssr-skeleton skeleton-item" style="width: 90%;"></div>
+            <div class="ssr-skeleton skeleton-item" style="width: 80%;"></div>
+            <div class="ssr-skeleton skeleton-item" style="width: 70%;"></div>
+        </div>
+    </div>
 </body>
-
 </html>

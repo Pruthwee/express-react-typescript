@@ -3,7 +3,7 @@ export default async function Get(
     headers:Record<string, unknown> = {}
 ): Promise<any>{
     try {
-        const response: Response = await fetch(url, {
+        const response = await fetch(url, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
