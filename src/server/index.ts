@@ -15,15 +15,14 @@ app.use(express.json() as RequestHandler)
 
 
 const port: number = Number(process.env.PORT) || 8050; // set our port
+// Serve static files from build directory
+// In cloud deployments, this can be configured to serve from a different location
+// or assets can be served directly from S3/CloudFront
+const staticDir = process.env.STATIC_DIR || 'dist';
+app.use(express.static(staticDir));
 
-// connect to database. right now it's just working with mongodb
-// but in near future it will be configured for other databases as well
-DBConnect.dbConnection();
-
-// Send index.html on root request
-app.use(express.static('dist'));
-app.get('/', (req:Request, res:Response) => {
-    console.log('sending index.html');
+    // Serve index.html from the configured static directory
+    res.sendFile('index.html', { root: staticDir });
     res.sendFile('/dist/index.html');
 });
 

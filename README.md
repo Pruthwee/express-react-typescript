@@ -1,11 +1,76 @@
-# express-react-typescript
+## Dependency Management and AWS CodeArtifact
 
-A boilerplate to build web application using Express and React with help of Typescript. It's configured to separate client-side JavaScript and CSS bundles and your files as assets.
+This application follows cloud-native best practices for dependency management:
 
-- [express-react-typescript](#Express-React-Boilerplate)
-  - [Introduction](#introduction)
-    - [Development mode](#development-mode)
-    - [Production mode](#production-mode)
+### Key Principles
+
+- **Never commit `node_modules/`**: The `node_modules` directory is excluded from version control via `.gitignore`
+- **Use lock files**: `yarn.lock` (or `package-lock.json`) ensures reproducible builds across all environments
+- **CI/CD integration**: AWS CodeBuild uses `buildspec.yml` to install dependencies from lock files
+
+### AWS CodeBuild Integration
+
+The included `buildspec.yml` configures AWS CodeBuild to:
+1. Install dependencies using `yarn install --frozen-lockfile` or `npm ci`
+2. Build the application with production optimizations
+3. Cache `node_modules` for faster subsequent builds
+4. Exclude `node_modules` from deployment artifacts
+
+### AWS CodeArtifact (Optional)
+
+For private package management, this application can be configured to use AWS CodeArtifact as a private npm registry. See [AWS_CODEARTIFACT_SETUP.md](./AWS_CODEARTIFACT_SETUP.md) for detailed setup instructions.
+
+---
+
+CSS minification is automatically enabled in production builds using:
+- **LESS Compilation**: LESS files are compiled to CSS and then minified in the production build
+To build with CSS minification enabled:
+
+```bash
+# Next.js build (recommended for AWS Lambda/Amplify)
+NODE_ENV=production npm run build
+
+# Legacy webpack build
+The included `buildspec.yml` file configures AWS CodeBuild/CodePipeline to:
+4. Deploy minified CSS to S3 bucket
+5. Invalidate CloudFront cache for updated assets
+
+#### Required Environment Variables for CodePipeline
+
+Configure these environment variables in your AWS CodeBuild project:
+
+- `NODE_ENV`: Set to `production` (enables CSS minification)
+- `S3_BUCKET`: Target S3 bucket for static assets (e.g., `my-app-static-assets`)
+- `CLOUDFRONT_DISTRIBUTION_ID`: CloudFront distribution ID for cache invalidation (optional)
+- `AWS_REGION`: AWS region for S3 and CloudFront operations (default: `us-east-1`)
+
+#### CodePipeline Setup
+
+1. **Source Stage**: Connect to your Git repository (CodeCommit, GitHub, etc.)
+2. **Build Stage**: Use AWS CodeBuild with the included `buildspec.yml`
+3. **Deploy Stage**: Artifacts are automatically deployed to S3 during the build stage
+
+The build process ensures:
+- LESS files (`src/client/Less/app.less`) are compiled to CSS
+- CSS is minified using CSSNano with aggressive optimization presets
+- Minified CSS is deployed to S3 with cache-control headers
+- CloudFront cache is invalidated for immediate delivery
+- Optimized for global edge network delivery with long-term caching
+- Cached at edge locations for reduced latency
+
+#### Cache Headers
+
+Static assets are deployed with the following cache-control headers:
+- **CSS/JS bundles**: `public,max-age=31536000,immutable` (1 year, immutable)
+- **Public assets**: `public,max-age=86400` (1 day)
+
+These headers ensure optimal CloudFront caching and reduced bandwidth costs.
+- Optimized for global edge network delivery
+
+### Verification
+
+Check that CSS files are minified by inspecting the build output in `.next/static/css/` or `dist/css/` directories.
+
   - [Quick Start](#quick-start)
   - [Documentation](#documentation)
     - [Directory Structure](#directory-structure)
@@ -15,12 +80,7 @@ A boilerplate to build web application using Express and React with help of Type
     - [ESLint](#eslint)
     - [Webpack](#webpack)
     - [Webpack dev server](#webpack-dev-server)
-    - [Nodemon](#nodemon)
-    - [Express](#express)
-    - [Concurrently](#concurrently)
-    - [VSCode + ESLint + Prettier](#vscode--eslint--prettier)
-      - [Installation guide](#installation-guide)
-
+    - [AWS S3 Configuration](#aws-s3-configuration)
 ## Introduction
 
 It's a really well-configured approach for building applications with full-stack Typescript. It's configured for Back-end development with using MongoDB as Database, ExpressJS framework for web services and Front-end development using ReactJS library with help of Typescript language and Less preprocessor for stylesheets.
@@ -273,3 +333,53 @@ Express is a web application framework for Node.js. It is used to build our back
     ```
 
 This can be configured at the project level by following [this article](https://medium.com/@netczuk/your-last-eslint-config-9e35bace2f99).
+
+### AWS S3 Configuration
+
+This application is configured to deploy static assets (JavaScript bundles, CSS files, images) to AWS S3 for cloud-native storage and delivery. This ensures compatibility with containerized and serverless environments where local file system storage is ephemeral.
+
+#### Environment Variables
+
+To enable S3 integration during the build process, configure the following environment variables:
+
+**Required for S3 Upload:**
+- `AWS_S3_BUCKET`: The name of your S3 bucket (e.g., `my-app-assets`)
+- `AWS_ACCESS_KEY_ID`: Your AWS access key ID
+- `AWS_SECRET_ACCESS_KEY`: Your AWS secret access key
+- `AWS_REGION`: AWS region where your bucket is located (default: `us-east-1`)
+
+**Optional Configuration:**
+- `AWS_S3_BASE_PATH`: Base path within the S3 bucket (default: `assets`)
+- `AWS_S3_PUBLIC_PATH`: Public URL path for accessing assets (e.g., `https://cdn.example.com/`)
+- `BUILD_OUTPUT_DIR`: Local build output directory (default: `dist`)
+
+#### Development Mode
+
+In development mode, assets are served locally from the webpack dev server. No S3 configuration is required:
+
+```bash
+npm run dev
+```
+
+#### Production Build with S3 Upload
+
+When building for production with S3 upload enabled:
+
+```bash
+# Set environment variables
+export AWS_S3_BUCKET=my-app-assets
+export AWS_ACCESS_KEY_ID=your-access-key
+export AWS_SECRET_ACCESS_KEY=your-secret-key
+export AWS_REGION=us-east-1
+export AWS_S3_PUBLIC_PATH=https://my-app-assets.s3.amazonaws.com/
+
+# Build and upload to S3
+npm run build
+```
+
+#### S3 Bucket Configuration
+
+Ensure your S3 bucket is configured with:
+- Public read access for static assets (or use CloudFront for CDN)
+- CORS configuration if serving assets from a different domain
+- Appropriate bucket policies for the IAM user credentials

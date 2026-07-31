@@ -5,11 +5,96 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Express, React, Typescript, Less </title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+    <title>Express, React, Typescript, Less - Next.js SSR</title>
+    
+    <!-- Shimmer Animation for Skeleton Screens -->
+    <style>
+        @keyframes shimmer { 
+            0% { background-position: -200% 0; } 
+            100% { background-position: 200% 0; } 
+        }
+        @keyframes spin { 
+            0% { transform: rotate(0deg); } 
+            100% { transform: rotate(360deg); } 
+        }
+        .ssr-skeleton { 
+            background: #fafafa; 
+            min-height: 100vh; 
+        }
+        /* Hide skeleton when React hydrates */
+        #__next:not(:empty) .ssr-skeleton {
+            display: none;
+        }
+    </style>
 </head>
 
 <body>
-    <div id="root"></div>
+    <!-- 
+        This application now uses Next.js Server-Side Rendering (SSR)
+        The root div is populated by Next.js on the server before being sent to the client
+        This ensures SEO compatibility and better performance on cloud platforms like AWS Lambda
+        
+        For Next.js deployment:
+        - Use AWS Amplify Hosting for automatic SSR deployment
+        - Or use SST (Serverless Stack) for AWS Lambda deployment
+        - Or deploy to AWS Lambda@Edge with CloudFront
+        
+        The server-rendered content will be injected here by Next.js
+    -->
+    <div id="__next">
+        <!-- SSR Skeleton Screen for AWS CloudFront Lambda@Edge -->
+        <!-- This provides meaningful initial HTML structure while server-side rendering completes -->
+        <div class="ssr-skeleton" style="padding: 20px; max-width: 1200px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;">
+            <!-- Header Skeleton -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #e0e0e0;">
+                <div style="width: 150px; height: 32px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px;"></div>
+                <div style="display: flex; gap: 15px;">
+                    <div style="width: 80px; height: 24px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px;"></div>
+                    <div style="width: 80px; height: 24px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px;"></div>
+                    <div style="width: 80px; height: 24px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px;"></div>
+                </div>
+            </div>
+            
+            <!-- Main Content Skeleton -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                <!-- Card Skeleton 1 -->
+                <div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; background: #fff;">
+                    <div style="width: 100%; height: 150px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; margin-bottom: 15px;"></div>
+                    <div style="width: 70%; height: 20px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; margin-bottom: 10px;"></div>
+                    <div style="width: 90%; height: 16px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; margin-bottom: 8px;"></div>
+                    <div style="width: 85%; height: 16px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px;"></div>
+                </div>
+                
+                <!-- Card Skeleton 2 -->
+                <div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; background: #fff;">
+                    <div style="width: 100%; height: 150px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; margin-bottom: 15px;"></div>
+                    <div style="width: 70%; height: 20px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; margin-bottom: 10px;"></div>
+                    <div style="width: 90%; height: 16px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; margin-bottom: 8px;"></div>
+                    <div style="width: 85%; height: 16px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px;"></div>
+                </div>
+                
+                <!-- Card Skeleton 3 -->
+                <div style="border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; background: #fff;">
+                    <div style="width: 100%; height: 150px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; margin-bottom: 15px;"></div>
+                    <div style="width: 70%; height: 20px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; margin-bottom: 10px;"></div>
+                    <div style="width: 90%; height: 16px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; margin-bottom: 8px;"></div>
+                    <div style="width: 85%; height: 16px; background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px;"></div>
+                </div>
+            </div>
+            
+            <!-- Loading State Message -->
+            <div style="text-align: center; padding: 40px 20px; color: #666;">
+                <div style="width: 40px; height: 40px; border: 3px solid #f0f0f0; border-top-color: #3498db; border-radius: 50%; margin: 0 auto 15px; animation: spin 1s linear infinite;"></div>
+                <p style="margin: 0; font-size: 16px;">Loading content from AWS CloudFront Edge...</p>
+                <p style="margin: 10px 0 0; font-size: 14px; color: #999;">Server-side rendering in progress</p>
+            </div>
+        </div>
+        
+        <noscript>
+            <strong>This application requires JavaScript to be enabled. Please enable JavaScript in your browser.</strong>
+        </noscript>
+    </div>
 </body>
 
 </html>

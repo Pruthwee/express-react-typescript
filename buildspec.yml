@@ -1,0 +1,49 @@
+version: 0.2
+
+# AWS CodeBuild buildspec for Node.js application
+# This configuration ensures dependencies are installed from lock files
+# and node_modules is never committed to version control
+
+phases:
+  pre_build:
+    commands:
+      - echo "Installing dependencies from lock file..."
+      # Use yarn install with frozen lockfile to ensure reproducible builds
+      # Alternatively, use npm ci if package-lock.json is present
+      - |
+        if [ -f "yarn.lock" ]; then
+          echo "Using yarn with frozen lockfile"
+          yarn install --frozen-lockfile
+        elif [ -f "package-lock.json" ]; then
+          echo "Using npm ci for reproducible builds"
+          npm ci
+        else
+          echo "Warning: No lock file found. Using npm install"
+          npm install
+        fi
+      - echo "Dependencies installed successfully"
+  
+  build:
+    commands:
+      - echo "Building application..."
+      - npm run build
+      - echo "Build completed successfully"
+  
+  post_build:
+    commands:
+      - echo "Build process completed"
+      - echo "Verifying build artifacts..."
+      - ls -la .next/ || echo "Build output directory not found"
+
+artifacts:
+  files:
+    - '**/*'
+  exclude-paths:
+    - node_modules/**/*
+    - .git/**/*
+    - '*.log'
+
+cache:
+  paths:
+    - 'node_modules/**/*'
+    - '.next/cache/**/*'

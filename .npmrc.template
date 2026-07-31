@@ -1,0 +1,21 @@
+# NPM Configuration for AWS CodeArtifact
+# This file is a template - do NOT commit with actual credentials
+
+# Uncomment and configure these settings to use AWS CodeArtifact
+# Replace placeholders with your actual values
+
+# registry=https://[DOMAIN]-[ACCOUNT_ID].d.codeartifact.[REGION].amazonaws.com/npm/[REPOSITORY]/
+# //[DOMAIN]-[ACCOUNT_ID].d.codeartifact.[REGION].amazonaws.com/npm/[REPOSITORY]/:always-auth=true
+
+# Example:
+# registry=https://my-domain-123456789012.d.codeartifact.us-east-1.amazonaws.com/npm/my-repo/
+# //my-domain-123456789012.d.codeartifact.us-east-1.amazonaws.com/npm/my-repo/:always-auth=true
+
+# Note: Authentication token should be set via environment variable or AWS CLI
+# Do NOT hardcode credentials in this file
+# Use: aws codeartifact get-authorization-token --domain my-domain --query authorizationToken --output text
+
+# For local development, you can set the auth token temporarily:
+# npm config set //[DOMAIN]-[ACCOUNT_ID].d.codeartifact.[REGION].amazonaws.com/npm/[REPOSITORY]/:_authToken=[TOKEN]
+
+# For CI/CD (AWS CodeBuild), the buildspec.yml handles authentication automatically
