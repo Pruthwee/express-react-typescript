@@ -1,0 +1,180 @@
+# Azure DevOps Pipeline for CSS Minification with Blob Storage and Front Door Delivery
+# This pipeline builds the application with minified CSS and deploys to Azure Blob Storage
+# Static assets are served via Azure Front Door CDN for optimal global delivery
+# Dependencies are installed using npm ci with cached node_modules for efficient builds
+
+trigger:
+  branches:
+    include:
+      - main
+      - master
+      - develop
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  # Azure Storage Account for static assets
+  azureStorageAccount: '$(AZURE_STORAGE_ACCOUNT)'
+  azureStorageContainer: '$(AZURE_STORAGE_CONTAINER)'
+  # Azure Front Door endpoint for CDN delivery
+  azureFrontDoorEndpoint: '$(AZURE_FRONTDOOR_ENDPOINT)'
+  # Node.js version
+  nodeVersion: '12.x'
+
+stages:
+  - stage: Build
+    displayName: 'Build and Minify Assets'
+    jobs:
+      - job: BuildJob
+        displayName: 'Build Application with CSS Minification'
+        steps:
+          - task: NodeTool@0
+            displayName: 'Install Node.js'
+            inputs:
+              versionSpec: $(nodeVersion)
+
+          - task: Cache@2
+            displayName: 'Cache node_modules'
+            inputs:
+              key: 'npm | "$(Agent.OS)" | package-lock.json'
+              restoreKeys: |
+                npm | "$(Agent.OS)"
+              path: $(System.DefaultWorkingDirectory)/node_modules
+            continueOnError: true
+
+          - task: Npm@1
+            displayName: 'Install Dependencies with npm ci'
+            inputs:
+              command: 'custom'
+              customCommand: 'ci'
+              workingDir: '$(System.DefaultWorkingDirectory)'
+            env:
+              NODE_ENV: 'production'
+
+          - task: Npm@1
+            displayName: 'Build Production Bundle with Minified CSS'
+            inputs:
+              command: 'custom'
+              customCommand: 'run build'
+              workingDir: '$(System.DefaultWorkingDirectory)'
+            env:
+              NODE_ENV: 'production'
+              WEBPACK_OUTPUT_DIR: 'dist'
+
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish Build Artifacts'
+            inputs:
+              PathtoPublish: '$(System.DefaultWorkingDirectory)/dist'
+              ArtifactName: 'drop'
+              publishLocation: 'Container'
+
+  - stage: Deploy
+    displayName: 'Deploy to Azure Blob Storage'
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - deployment: DeployJob
+        displayName: 'Deploy Static Assets to Azure Blob Storage'
+        environment: 'production'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: DownloadBuildArtifacts@0
+                  displayName: 'Download Build Artifacts'
+                  inputs:
+                    buildType: 'current'
+                    downloadType: 'single'
+                    artifactName: 'drop'
+                    downloadPath: '$(System.ArtifactsDirectory)'
+
+                - task: AzureCLI@2
+                  displayName: 'Upload Minified CSS to Azure Blob Storage'
+                  inputs:
+                    azureSubscription: '$(AZURE_SERVICE_CONNECTION)'
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      # Upload CSS files to Azure Blob Storage
+                      az storage blob upload-batch \
+                        --account-name $(azureStorageAccount) \
+                        --destination $(azureStorageContainer) \
+                        --source $(System.ArtifactsDirectory)/drop/css \
+                        --destination-path css \
+                        --content-type "text/css" \
+                        --content-encoding "gzip" \
+                        --overwrite true
+                      
+                      # Upload JavaScript files
+                      az storage blob upload-batch \
+                        --account-name $(azureStorageAccount) \
+                        --destination $(azureStorageContainer) \
+                        --source $(System.ArtifactsDirectory)/drop/js \
+                        --destination-path js \
+                        --content-type "application/javascript" \
+                        --content-encoding "gzip" \
+                        --overwrite true
+                      
+                      # Upload other static assets
+                      az storage blob upload-batch \
+                        --account-name $(azureStorageAccount) \
+                        --destination $(azureStorageContainer) \
+                        --source $(System.ArtifactsDirectory)/drop \
+                        --pattern "*.html" \
+                        --content-type "text/html" \
+                        --overwrite true
+
+                - task: AzureCLI@2
+                  displayName: 'Purge Azure Front Door Cache'
+                  inputs:
+                    azureSubscription: '$(AZURE_SERVICE_CONNECTION)'
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      # Purge Front Door cache to ensure latest minified CSS is served
+                      az afd endpoint purge \
+                        --resource-group $(AZURE_RESOURCE_GROUP) \
+                        --profile-name $(AZURE_FRONTDOOR_PROFILE) \
+                        --endpoint-name $(azureFrontDoorEndpoint) \
+                        --content-paths "/*" \
+                        --domains $(azureFrontDoorEndpoint)
+
+  - stage: Verify
+    displayName: 'Verify Deployment'
+    dependsOn: Deploy
+    condition: succeeded()
+    jobs:
+      - job: VerifyJob
+        displayName: 'Verify CSS Minification and CDN Delivery'
+        steps:
+          - task: Bash@3
+            displayName: 'Verify Minified CSS via Front Door'
+            inputs:
+              targetType: 'inline'
+              script: |
+                # Verify CSS files are accessible via Azure Front Door
+                echo "Verifying CSS delivery from Azure Front Door CDN..."
+                
+                # Check if CSS files are minified (no whitespace, comments removed)
+                CSS_URL="https://$(azureFrontDoorEndpoint)/css/main.css"
+                
+                # Download CSS file
+                curl -s -o /tmp/main.css "$CSS_URL"
+                
+                # Check file size (minified should be smaller)
+                FILE_SIZE=$(stat -f%z /tmp/main.css 2>/dev/null || stat -c%s /tmp/main.css)
+                echo "CSS file size: $FILE_SIZE bytes"
+                
+                # Verify no comments in minified CSS
+                if grep -q "/\*" /tmp/main.css; then
+                  echo "Warning: CSS file may not be fully minified (contains comments)"
+                else
+                  echo "Success: CSS file is minified (no comments found)"
+                fi
+                
+                # Verify CDN headers
+                echo "Checking CDN headers..."
+                curl -I "$CSS_URL" | grep -i "x-azure-ref\|cache-control"
+                
+                echo "CSS minification and CDN delivery verification complete"

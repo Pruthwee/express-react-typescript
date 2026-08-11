@@ -1,9 +1,17 @@
+/**
+ * Client-side HTTP DELETE service
+ * @module Client/Services/Delete
+ * @description Browser-only service using Fetch API (DOM)
+ * This file should only be used in client/browser context, not in Node.js/Azure Functions
+ */
+
 export default async function Delete(
     url: string,
     body: Record<string, unknown>,
-    headers:Record<string, unknown> = {}
-): Promise<any>{
+    headers: Record<string, unknown> = {}
+): Promise<any> {
     try {
+        // Using browser's Fetch API - Response type from DOM lib
         const response: Response = await fetch(url, {
             method: 'DELETE',
             headers: {

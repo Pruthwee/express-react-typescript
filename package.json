@@ -1,7 +1,7 @@
 {
   "name": "express-react-typescript",
   "version": "4.0.0",
-  "description": "An Express, React with Typescript and Less boilerplate",
+  "description": "An Express, React with Typescript and Less boilerplate with SSR support for Azure",
   "main": "server/index.js",
   "scripts": {
     "build": "webpack --mode production",
@@ -9,11 +9,14 @@
     "client": "webpack-dev-server --mode development --devtool inline-source-map --hot",
     "server": "tsc -p tsconfig.server.json && node server/",
     "dev": "concurrently \"nodemon\" \"npm run client\"",
-    "server-dev": "nodemon"
+    "server-dev": "nodemon",
+    "azure:build": "npm run build && npm run server:compile",
+    "server:compile": "tsc -p tsconfig.server.json"
   },
   "author": "Elias Rahmani",
   "license": "MIT",
   "dependencies": {
+    "@azure/storage-blob": "^12.17.0",
     "@types/react": "^16.8.16",
     "@types/react-dom": "^16.8.4",
     "@types/react-redux": "^7.1.10",
@@ -42,6 +45,7 @@
     "concurrently": "^4.0.0",
     "copy-webpack-plugin": "^5.0.3",
     "css-loader": "^2.0.0",
+    "css-minimizer-webpack-plugin": "^3.4.1",
     "eslint": "^7.19.0",
     "eslint-config-airbnb": "^17.0.0",
     "eslint-config-airbnb-base": "^14.2.1",
@@ -61,5 +65,15 @@
     "webpack": "^4.5.0",
     "webpack-cli": "^3.0.8",
     "webpack-dev-server": "^3.1.3"
+  },
+  "engines": {
+    "node": ">=12.0.0",
+    "npm": ">=6.0.0"
+  },
+  "azure": {
+    "ssr": {
+      "enabled": true,
+      "platform": "Azure Static Web Apps / Azure Container Apps"
+    }
   }
 }
